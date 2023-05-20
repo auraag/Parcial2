@@ -286,7 +286,6 @@ class Turno:
 
     def mostrarResumen(self) -> None:
         print("---------------- Resumen de turno ingresado -------------------")
-        print("Puntos geograficos: ")
         print(self.camion)
         print("Cantidad de vidrio: ", self.clasificacion["vidrio"])
         print("Cantidad de papel: ", self.clasificacion["vidrio"])
