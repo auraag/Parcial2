@@ -2,12 +2,22 @@ import random as rd
 
 
 class Empresa:
+    _instance = None
+
+    def __new__(cls):
+        if not cls._instance:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
         self.camiones = []
         self.conductores = []
         self.asistentes = []
         self.turnosDelDia = []
         self.turnosTotales = 0
+
+    def __iter__(self):
+        return IteradorTurnos(self.turnosDelDia)
 
     # Función que agrega un camión
     def agregarCamion(self):
@@ -161,14 +171,20 @@ class Empresa:
         respuesta = input("¿Estás seguro de que deseas ingresar el turno? (S/N): ")
         if respuesta.upper() == "S":
             self.turnosDelDia.append(turno)
+            self.turnosTotales += 1
             print("------- Turno ingresado correctamente -------")
         else:
             print("----- Turno no registrado -----")
 
     def calcularVidrio(self) -> float:
         totalVidrio = 0
-        for i in self.turnosDelDia:
-            totalVidrio += i.clasificacion["vidrio"]
+        iterador = iter(self.turnosDelDia)
+        while True:
+            try:
+                turno = next(iterador)
+                totalVidrio += turno.clasificacion["vidrio"]
+            except StopIteration:
+                break
         return totalVidrio
 
     def finalizarDia(self):
@@ -183,6 +199,22 @@ class Empresa:
             print("------------------------- DÍA FINALIZADO ------------------------")
         else:
             print("...Continuando el día...")
+
+
+class IteradorTurnos:
+    def __init__(self, turnos):
+        self.turnos = turnos
+        self.indice_actual = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.indice_actual < len(self.turnos):
+            turno = self.turnos[self.indice_actual]
+            self.indice_actual += 1
+            return turno
+        raise StopIteration()
 
 class PuntoGeografico:
     def __init__(self, latitud: int, longitud: int):
@@ -239,7 +271,7 @@ class Turno:
         self.asistentes = self.camion.asistentes
         self.clasificacion = {"vidrio": 0.0, "papel": 0.0, "metal": 0.0, "residuos": 0.0}
 
-    def generarRuta(self):
+    def generarRuta(self) -> None:
         for _ in range(5):
             latitud = rd.randint(-90, 90)  # Generar latitud aleatoria entre -90 y 90
             longitud = rd.randint(-180, 180)  # Generar longitud aleatoria entre -180 y 180
@@ -253,7 +285,8 @@ class Turno:
         self.clasificacion.update({"vidrio":vidrio, "papel":papel, "metal": metal, "residuos":residuos})
 
     def mostrarResumen(self) -> None:
-        print("----- Resumen de turno ingresado ------------------------------")
+        print("---------------- Resumen de turno ingresado -------------------")
+        print("Puntos geograficos: ")
         print(self.camion)
         print("Cantidad de vidrio: ", self.clasificacion["vidrio"])
         print("Cantidad de papel: ", self.clasificacion["vidrio"])
